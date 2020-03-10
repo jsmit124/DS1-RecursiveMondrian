@@ -46,6 +46,12 @@ public class MondrianArt extends Application {
 	}
 
 
+	/*
+	 * Starts the program
+	 * 
+	 * @param primaryStage
+	 * 		The primary stage of the program
+	 */
 	@Override
 	public void start(Stage primaryStage) {
 		try {
@@ -110,7 +116,6 @@ public class MondrianArt extends Application {
 		
 		if (width / 2 >= this.minWidth || height / 2 >= this.minHeight) {
 			if ((width - this.minWidth) < (height - this.minHeight)) {
-				System.out.println("Height value: " + height);
 				int randomSplit = this.randomIntGenerator.nextInt((int) height + 1 - ((int) this.minHeight * 2)) + (int) this.minHeight;
 				newWidth = (int) width;
 				newHeight = randomSplit;
@@ -136,14 +141,48 @@ public class MondrianArt extends Application {
 		int randomLineWidth = this.randomIntGenerator.nextInt((int) this.maxLineWidth) + 1;
 		gc.setLineWidth(randomLineWidth);
 		
+		Color randomColor = this.generateRandomColor();
+		gc.setFill(randomColor);
+		gc.fillRect(startX, startY, width, height);
+		
+		int randomPatternChance = this.randomIntGenerator.nextInt(101);
+		if (randomPatternChance < 10) {
+			this.drawPattern(gc, width, height, startX, startY);
+		}
+		
+		this.drawBoxSurroundingRectangle(gc, width, height, startX, startY);
+	}
+
+
+	/**
+	 * Draws a checkered pattern on the desired square
+	 */
+	private void drawPattern(GraphicsContext gc, double width, double height, double startX, double startY) {
+		gc.setLineWidth(1);
+		int distanceFromStartX = 0;
+		int xSplit = (int) width / 5;
+		int distanceFromStartY = 0;
+		int ySplit = (int) height / 5;
+		for (int i = 1; i < 6; i++) {
+			gc.strokeLine(startX + distanceFromStartX, startY, startX + distanceFromStartX, startY + height);
+			gc.strokeLine(startX, startY + distanceFromStartY, startX + width, startY + distanceFromStartY);
+			
+			distanceFromStartX += xSplit;
+			distanceFromStartY += ySplit;
+		}
+	}
+
+
+	/**
+	 * Generates 3 random color 8-bit bytes and returns the color corresponding to those RGB values
+	 */
+	private Color generateRandomColor() {
 		int redByte = this.randomIntGenerator.nextInt(256);
 		int greenByte = this.randomIntGenerator.nextInt(256);
 		int blueByte = this.randomIntGenerator.nextInt(256);
 		Color randomColor = Color.rgb(redByte, greenByte, blueByte);
-		gc.setFill(randomColor);
-		gc.fillRect(startX, startY, width, height);
 		
-		this.drawBoxSurroundingRectangle(gc, width, height, startX, startY);
+		return randomColor;
 	}
 
 
