@@ -84,7 +84,7 @@ public class MondrianArt extends Application {
 		try {
 			var input = Double.parseDouble(result.get());
 			if (input < 1 || input > upperBound) {
-				this.displayDialog("Enter a number higher than 0 and less than half of screen size", contentText, upperBound);
+				this.displayDialog("Enter a number higher than 0 or try a smaller number", contentText, upperBound);
 			}
 		} catch (NumberFormatException e) {
 			return this.displayDialog("Invalid entry. Please enter a number.", contentText, upperBound);
@@ -108,16 +108,17 @@ public class MondrianArt extends Application {
 		
 		this.drawRectangleOnCanvas(gc, width, height, startX, startY);
 		
-		if (width / 2 > this.minWidth || height / 2 > this.minHeight) {
+		if (width / 2 >= this.minWidth || height / 2 >= this.minHeight) {
 			if ((width - this.minWidth) < (height - this.minHeight)) {
-				int randomSplit = this.randomIntGenerator.nextInt((int) height - (int) this.minHeight);
+				System.out.println("Height value: " + height);
+				int randomSplit = this.randomIntGenerator.nextInt((int) height + 1 - ((int) this.minHeight * 2)) + (int) this.minHeight;
 				newWidth = (int) width;
 				newHeight = randomSplit;
 				
 				this.handleRectangle(gc, newWidth, newHeight, startX, startY);
 				this.handleRectangle(gc, width, height - newHeight, startX, startY + newHeight);
 			} else {
-				int randomSplit = this.randomIntGenerator.nextInt((int) width - (int) this.minWidth);
+				int randomSplit = this.randomIntGenerator.nextInt((int) width + 1 - ((int) this.minWidth * 2)) + (int) this.minWidth;
 				newWidth = randomSplit;
 				newHeight = (int) height;
 				
@@ -128,6 +129,9 @@ public class MondrianArt extends Application {
 	}
 
 
+	/*
+	 * Draws the rectangle of specified dimensions onto the canvas
+	 */
 	private void drawRectangleOnCanvas(GraphicsContext gc, double width, double height, double startX, double startY) {
 		int randomLineWidth = this.randomIntGenerator.nextInt((int) this.maxLineWidth) + 1;
 		gc.setLineWidth(randomLineWidth);
@@ -143,6 +147,9 @@ public class MondrianArt extends Application {
 	}
 
 
+	/*
+	 * Draws lines around the box with specified starting and ending values
+	 */
 	private void drawBoxSurroundingRectangle(GraphicsContext gc, double width, double height, double startX,
 			double startY) {
 		gc.strokeLine(startX, startY, startX + width, startY);
