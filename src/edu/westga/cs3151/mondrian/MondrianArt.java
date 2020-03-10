@@ -15,9 +15,12 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 /**
- * Class MondrianArt
+ * Stores information and handles functionality for the ModrianArt class
  * 
  * @author CS3151
+ * 		   jsmit124
+ * 
+ * @version 1.0
  */
 public class MondrianArt extends Application {
 
@@ -28,7 +31,7 @@ public class MondrianArt extends Application {
 	private double minHeight;
 	private double maxLineWidth;
 
-	private Random randomIntGenerator = new Random(WIDTH);
+	private Random randomIntGenerator = new Random(); 
 
 
 	/**
@@ -46,14 +49,14 @@ public class MondrianArt extends Application {
 	@Override
 	public void start(Stage primaryStage) {
 		try {
-			this.minHeight = this.displayDialog("Enter desired minimum height: ", "Minimum height: ");
-			this.minWidth = this.displayDialog("Enter desired mimimum length: ", "Minimum width: ");
-			this.maxLineWidth = this.displayDialog("Enter desired maximum line width: ", "Maximum line width: ");
+			this.minHeight = this.displayDialog("Enter desired minimum height: ", "Minimum height: ", HEIGHT / 2);
+			this.minWidth = this.displayDialog("Enter desired mimimum width: ", "Minimum width: ", WIDTH / 2);
+			this.maxLineWidth = this.displayDialog("Enter desired maximum line width: ", "Maximum line width: ", 50);
 
 			Canvas canvas = new Canvas(600, 600);
 			GraphicsContext gc = canvas.getGraphicsContext2D();
 
-			this.drawRectangle(gc, canvas.getWidth(), canvas.getHeight());
+			this.handleRectangle(gc, canvas.getWidth(), canvas.getHeight(), 0, 0);
 
 			Group group = new Group();
 			group.getChildren().add(canvas);
@@ -69,9 +72,9 @@ public class MondrianArt extends Application {
 
 
 	/**
-	 * Example code displaying a dialog to get user input
+	 * Displays a dialog to get user input and returns input
 	 */
-	private double displayDialog(String header, String contentText) {
+	private double displayDialog(String header, String contentText, int upperBound) {
 		TextInputDialog dialog = new TextInputDialog();
 		dialog.setTitle("Settings");
 		dialog.setHeaderText(header);
@@ -80,11 +83,11 @@ public class MondrianArt extends Application {
 		
 		try {
 			var input = Double.parseDouble(result.get());
-			if (input < 1) {
-				this.displayDialog("Enter a number higher than 0", contentText);
+			if (input < 1 || input > upperBound) {
+				this.displayDialog("Enter a number higher than 0 and less than half of screen size", contentText, upperBound);
 			}
 		} catch (NumberFormatException e) {
-			return this.displayDialog("Invalid entry. Please enter a number.", contentText);
+			return this.displayDialog("Invalid entry. Please enter a number.", contentText, upperBound);
 		} catch (NoSuchElementException e) {
 			System.exit(0);
 		}
@@ -96,62 +99,56 @@ public class MondrianArt extends Application {
 	/**
 	 * Recursive code creating a collection of rectangles
 	 */
-	private void drawRectangle(GraphicsContext gc, double width, double height) {
-		//setup 
+	private void handleRectangle(GraphicsContext gc, double width, double height, double startX, double startY) {
+		if (width <= this.minWidth || height <= this.minHeight) {
+			return;
+		}
 		gc.setStroke(Color.BLACK);
+		int newWidth, newHeight;
 		
-		//expansion: random line width
+		this.drawRectangleOnCanvas(gc, width, height, startX, startY);
+		
+		if (width / 2 > this.minWidth || height / 2 > this.minHeight) {
+			if ((width - this.minWidth) < (height - this.minHeight)) {
+				int randomSplit = this.randomIntGenerator.nextInt((int) height - (int) this.minHeight);
+				newWidth = (int) width;
+				newHeight = randomSplit;
+				
+				this.handleRectangle(gc, newWidth, newHeight, startX, startY);
+				this.handleRectangle(gc, width, height - newHeight, startX, startY + newHeight);
+			} else {
+				int randomSplit = this.randomIntGenerator.nextInt((int) width - (int) this.minWidth);
+				newWidth = randomSplit;
+				newHeight = (int) height;
+				
+				this.handleRectangle(gc, newWidth, newHeight, startX, startY);
+				this.handleRectangle(gc, width - newWidth, newHeight, startX + newWidth, startY);
+			}
+		}
+	}
+
+
+	private void drawRectangleOnCanvas(GraphicsContext gc, double width, double height, double startX, double startY) {
 		int randomLineWidth = this.randomIntGenerator.nextInt((int) this.maxLineWidth) + 1;
 		gc.setLineWidth(randomLineWidth);
 		
-		//determine if region should be split or not - DONE
-		if (width < this.minWidth && height < this.minHeight) {
-			return;
-		}
-		
-		//determine is region should be split vertically or horizontally
-		if (width < height) {
-			//draw horizontal line
-			//determine split of region randomly
-			//TODO
-		} else {
-			//draw vertical line
-			//determine split of region randomly
-			//TODO
-		}
-		
-		//draw random region and fill with random color
-		//generate random color for fill
 		int redByte = this.randomIntGenerator.nextInt(256);
 		int greenByte = this.randomIntGenerator.nextInt(256);
 		int blueByte = this.randomIntGenerator.nextInt(256);
 		Color randomColor = Color.rgb(redByte, greenByte, blueByte);
 		gc.setFill(randomColor);
+		gc.fillRect(startX, startY, width, height);
 		
-		//recursively call this method
-		//TODO
-		
-		//expansions:
-		//	use pattern fill instead of solid fill
-		//TODO
-		
-		
-		gc.setFill(Color.BLUE);
-		gc.fillRect(0, 0, 300, 600);
+		this.drawBoxSurroundingRectangle(gc, width, height, startX, startY);
+	}
 
-		gc.setStroke(Color.WHITE);
-		gc.setLineWidth(20);
-		gc.strokeLine(290, 10, 290, 590);
 
-		gc.setFill(Color.color(0.9, 0.3, 0));
-		gc.fillRect(300, 0, 300, 300);
-
-		gc.setFill(Color.YELLOW);
-		gc.fillRect(300, 300, 300, 300);
-
-		gc.setStroke(Color.GREEN);
-		gc.setLineWidth(30);
-		gc.strokeLine(315, 300, 585, 300);
+	private void drawBoxSurroundingRectangle(GraphicsContext gc, double width, double height, double startX,
+			double startY) {
+		gc.strokeLine(startX, startY, startX + width, startY);
+		gc.strokeLine(startX, startY, startX, startY + height);
+		gc.strokeLine(startX + width, startY, startX + width, startY + height);
+		gc.strokeLine(startX, startY + height, startX + width, startY + height);
 	}
 
 }
